@@ -27,7 +27,7 @@ const rl = readline.createInterface({
 dotenv.config();
 
 const configuration = new Configuration({
-    apiKey: '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',
+    apiKey: process.env.OPENAI_API_KEY,
 });
 const openai = new OpenAIApi(configuration);
 
