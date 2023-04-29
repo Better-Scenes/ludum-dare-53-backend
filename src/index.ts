@@ -2,6 +2,11 @@ import * as dotenv from 'dotenv';
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import repl from 'node:repl';
 import * as readline from 'readline';
+import { WebSocketServer } from './websocket';
+
+const websocketPort = 8080;
+const websocketServer = new WebSocketServer(websocketPort);
+
 
 const scenarios = [
     `A couple has just had a heated argument, and the woman is now tearfully pleading with her partner to forgive her and take her back.`
@@ -89,7 +94,7 @@ const chatCompletionRequest = async (messages: ChatCompletionRequestMessage[]) =
             messages: messages,
             max_tokens: 300,
             n: 1,
-            temperature: 0.8,
+            temperature: 1,
         });
         console.log(response.data.choices)
         console.log(response.data.usage)
