@@ -9,7 +9,7 @@ export enum WebsocketEvents {
 export type WebsocketMessage = {
     event: WebsocketEvents,
     uuid?: string, //unique identifier from client
-    data: any
+    data?: any
 }
 
 const connections: Map<string, WebSocket> = new Map();
@@ -27,17 +27,18 @@ export class WebSocketServer {
             socket.on('message', (rawData) => {
                 console.log(`Received raw: ${rawData}`);
                 const data = JSON.parse(rawData.toString())
-                this.handleMessage(data, socket)
                 if (data.event === WebsocketEvents.CONNECT) {
                     uuid = uuidv4();
                     connections.set(uuid, socket);
-                    socket.emit(JSON.stringify({ event: WebsocketEvents.CONNECT, data: uuid }))
+                    socket.send(JSON.stringify({ event: WebsocketEvents.CONNECT, data: uuid }))
                 }
                 else if (data.event === WebsocketEvents.NEW_GAME) {
-
+                    // create a new entry for the uuid in the game data table
+                    // generate a new scene prompt and send it
+                    socket.send(JSON.stringify({ event: WebsocketEvents.NEW_GAME, data: "You are a cavewoman, you are trying to explain to your boyfriend that you are pregnant" }))
                 }
                 else if (data.event === WebsocketEvents.MESSAGE) {
-
+                    
                 }
             });
 
