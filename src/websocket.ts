@@ -1,5 +1,8 @@
 import { Server, WebSocket } from 'ws';
 import { v4 as uuidv4 } from 'uuid';
+import GameState from './gamestate';
+import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, ChatCompletionResponseMessageRoleEnum } from 'openai';
+import GPT from './gpt';
 
 export enum WebsocketEvents {
     CONNECT = 'CONNECT', // user is connecting or server is responding with uuid
@@ -24,7 +27,7 @@ export class WebSocketServer {
             let uuid: string = '';
             console.log(`Client connected`);
 
-            socket.on('message', (rawData) => {
+            socket.on('message', async (rawData) => {
                 console.log(`Received raw: ${rawData}`);
                 const data = JSON.parse(rawData.toString())
                 if (data.event === WebsocketEvents.CONNECT) {
@@ -35,10 +38,16 @@ export class WebSocketServer {
                 else if (data.event === WebsocketEvents.NEW_GAME) {
                     // create a new entry for the uuid in the game data table
                     // generate a new scene prompt and send it
-                    socket.send(JSON.stringify({ event: WebsocketEvents.NEW_GAME, data: "You are a cavewoman, you are trying to explain to your boyfriend that you are pregnant" }))
+                    const prompt = GameState.startNewGame(uuid)
+                    socket.send(JSON.stringify({ event: WebsocketEvents.NEW_GAME, data: prompt }))
                 }
                 else if (data.event === WebsocketEvents.MESSAGE) {
-                    
+                    const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
+                    const actorResponse = await GPT.chatCompletionRequest(GPT.generateActorPrompt(data.data, GameState.getHistory(uuid)));
+                    const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: actorResponse?.content || 'uhhhhh...'}
+                    GameState.newMessage(uuid, userMessage)
+                    GameState.newMessage(uuid, responseMessage)
+                    socket.send(JSON.stringify({ event: WebsocketEvents.MESSAGE, data: responseMessage }))
                 }
             });
 
@@ -49,9 +58,5 @@ export class WebSocketServer {
         });
 
         console.log(`WebSocket server started on port ${port}`);
-    }
-
-    handleMessage = (message: WebsocketMessage, socket: WebSocket) => {
-
     }
 }
