@@ -31,22 +31,31 @@ class GPTClass {
                     return `${h.role}: ${h.content}`
                 }).join('\n')}
                 User: ${messages}
-          ` },
+          `.replace(/[ \t]{2,}/g, '')},
         ]
     }
     
     generateActorPrompt = (messages: string, history: ChatCompletionRequestMessage[]): ChatCompletionRequestMessage[] => {
+        console.log({messages}, {history})
         return [
             { role: "system", content: "you are in a play, you are playing a character" },
             {
                 role: "user", content: `
-                you are in a play, you are playing a character, the setting is the character is a neolithic cavewoman and she is trying to tell her boyfriend that she is pregnant, write one short line of dialogue, make it very funny
-                ${history.map(h => {
-                    return `${h.role}: ${h.content}`
-                }).join('\n')}
-                User: ${messages}
-                Assistant: {your response}
-          ` },
+                You are doing improv comedy on a stage, you are working with another actor and supporting them. You play "the other character" in the setting and your job is to respond to the actor while in character
+                You are a comedian, you are extremely funny, witty, sometimes a bit silly and playful, you are very good at supporting other actors. You like slapstick comedy and act out your actions like this "*{verb or action}*"
+                The setting is provided to the main actor, this is what was given to them: "you are a neolithic cavewoman and she is trying to tell her boyfriend that she is pregnant"
+
+                Create a response that matches the setting, responds to the user in some way, and tries to set them up for an easy joke
+                Keep the answer short, punchy and to the point, no more than 25 words
+                Now write out your response in character, do not wrap the message in quotation marks, do not prefix your response with "Support:" or anything else
+
+                Here is the script so far:
+                ${history.length > 0 ? history.map(h => {
+                    return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
+                }).join('\n') : '' }
+                Actor: ${messages}
+                Support: {your_response}
+          `.replace(/[ \t]{2,}/g, '') },
         ]
     }
     
@@ -59,12 +68,13 @@ class GPTClass {
           This is an array of numbers, each number represents the number of chat messages sent per second in a twitch chat: ${messages}|
           The most recent number is the last number, please assess the last 10 numbers, compared to all of the previous numbers, how excited is chat right now?|
           Keep your answer very short, answer on a scale from 1-10
-          ` },
+          `.replace(/[ \t]{2,}/g, '')},
         ]
     }
 
     chatCompletionRequest = async (messages: ChatCompletionRequestMessage[]): Promise<ChatCompletionResponseMessage|undefined>  => {
         try {
+            console.log(messages)
             const response = await openai.createChatCompletion({
                 model: "gpt-3.5-turbo",
                 messages: messages,
@@ -76,6 +86,9 @@ class GPTClass {
             console.log(response.data.usage)
             if(!response.data.choices[0].message) throw new Error('something went wrong generating the response from gpt')
             const message: ChatCompletionResponseMessage = response.data.choices[0].message
+            debugger
+            message.content = message.content.replace('Support: ', '')
+            message.content = message.content.replace('"', '')
             return message
         } catch (e) {
             console.error(e)
