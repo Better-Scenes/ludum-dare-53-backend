@@ -62,10 +62,12 @@ export class WebSocketServer {
                     uuid = uuidv4();
                     connections.set(uuid, socket);
                     socket.send(JSON.stringify({ event: WebsocketEvents.CONNECT, data: uuid }))
+                    console.log("Connection established: ", uuid)
                 }
                 else if (data.event === WebsocketEvents.NEW_GAME) {
                     // create a new entry for the uuid in the game data table
                     // generate a new scene prompt and send it
+                    console.log("New game message: ", uuid)
                     const prompt = GameState.startNewGame(uuid)
                     socket.send(JSON.stringify({ event: WebsocketEvents.NEW_GAME, data: prompt }))
                 }
