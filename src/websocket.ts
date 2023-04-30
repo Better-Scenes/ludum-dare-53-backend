@@ -4,10 +4,21 @@ import GameState from './gamestate';
 import { ChatCompletionRequestMessage, ChatCompletionRequestMessageRoleEnum, ChatCompletionResponseMessageRoleEnum } from 'openai';
 import GPT from './gpt';
 
+export type CriticResponse = {
+    scores: {
+        humor: number,
+        originality: number, 
+        relevance: number, 
+        overall: number
+    }
+    feedback: string
+}
+
 export enum WebsocketEvents {
     CONNECT = 'CONNECT', // user is connecting or server is responding with uuid
     NEW_GAME = 'NEW_GAME', // when the user is starting a new game
     MESSAGE = 'MESSAGE', // message from the user, e.g sending their prompt
+    FINISHED = 'FINISHED', // used for signalling the round is concluded and critic prompt should be written
 }
 export type WebsocketMessage = {
     event: WebsocketEvents,
@@ -16,6 +27,18 @@ export type WebsocketMessage = {
 }
 
 const connections: Map<string, WebSocket> = new Map();
+
+const testMessages: ChatCompletionRequestMessage[] = [
+    {role: 'user', content: 'oh no! me be have baby in belly!'},
+    {role: 'assistant', content: 'Ugg, me think you need bigger leopard print loincloth to make room for little cavebaby.'},
+    {role: 'user', content: 'if me need new loincloth then me also need new cave! Start digging!'},
+]
+
+const testBadMessages: ChatCompletionRequestMessage[] = [
+    {role: 'user', content: 'unga bunga me cavewoman me like potatos!'},
+    {role: 'assistant', content: 'Why you like potatos?'},
+    {role: 'user', content: 'potato potato potat'},
+]
 
 export class WebSocketServer {
     private server: Server;
@@ -26,6 +49,7 @@ export class WebSocketServer {
         this.server.on('connection', (socket) => {
             let uuid: string = '';
             console.log(`Client connected`);
+            const criticResponse = GPT.chatCompletionRequest(GPT.generateCriticPrompt(testBadMessages, 'you are a cavewoman telling her boyfriend she is pregnant'));
 
             socket.on('message', async (rawData) => {
                     const data = JSON.parse(rawData.toString())
@@ -47,6 +71,12 @@ export class WebSocketServer {
                     GameState.newMessage(uuid, userMessage)
                     GameState.newMessage(uuid, responseMessage)
                     socket.send(JSON.stringify({ event: WebsocketEvents.MESSAGE, data: responseMessage }))
+                }
+                else if (data.event === WebsocketEvents.FINISHED) {
+                    const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
+                    const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                    GameState.newMessage(uuid, userMessage)
+                    socket.send(JSON.stringify({ event: WebsocketEvents.FINISHED, data: criticResponse }))
                 }
             });
 

@@ -19,13 +19,13 @@ class GPTClass {
                 
                 FORMAT
                 {
-                  "ratings": {
+                  "scores": {
                     "humor": 8, // 1-10 The most obvious factor is how funny the dialogue is, based on how much it makes people laugh or smile.
                     "originality": 7, // 1-10  How well does the dialogue avoid cliches and tropes, how creative is the dialogue.
                     "relevance": 6, // 1-10  How well does the dialogue fit with the scene and character description.
-                    "overall": 7, // 1-10  How well did the user do overall.
+                    "overall": 7 // 1-10  How well did the user do overall.
+                    },
                     "feedback": "Your feedback about the joke" // give a short piece of feedback for the comedian about their joke, keep this to 300 characters
-                  }
                 }
                 ${history.map(h => {
                     return `${h.role}: ${h.content}`
@@ -59,15 +59,32 @@ class GPTClass {
         ]
     }
     
-    generateCriticPrompt = (messages: string): ChatCompletionRequestMessage[] => {
+    generateCriticPrompt = (messages: ChatCompletionRequestMessage[], prompt: string): ChatCompletionRequestMessage[] => {
         return [
-            { role: "system", content: "You are a twitch chatbot, you are assessing how excited the chat is based on average messages" },
+            { role: "system", content: "You are a theater critic, you are watching an improv show" },
             {
                 role: "user", content: `
-          You are a twitch chatbot, you are assessing how excited the chat is based on average messages|
-          This is an array of numbers, each number represents the number of chat messages sent per second in a twitch chat: ${messages}|
-          The most recent number is the last number, please assess the last 10 numbers, compared to all of the previous numbers, how excited is chat right now?|
-          Keep your answer very short, answer on a scale from 1-10
+                You are a theater critic, you have watched an improv show. You are reviewing an actor, you will be given the script for reference.
+                Your critiques are scathing, sarcastic, over-confident and harsh.
+
+                Here is the prompt they were given:
+                ${prompt}
+
+                Here is the script from the show:
+                ${ messages.map(h => {
+                    return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
+                }).join('\n') }
+
+                Use the following format, You may only respond with a single json object. Nothing else. No extra messages.
+                {
+                  "scores": {
+                    "humor": {score}, // 1-10 The most obvious factor is how funny the actor's dialogue is, based on how much it makes people laugh or smile.
+                    "originality": {score}, // 1-10  How well does the actor's dialogue avoid cliches and tropes, how creative is the dialogue.
+                    "relevance": {score}, // 1-10  How well does the actor's dialogue fit with the scene and character description, how well did they interract with the support?
+                    "overall": {score}, // 1-10  How well did the actor do overall.
+                    },
+                    "feedback": "{critique}" // Give your thoughts on the show and the actor's performance, did they keep to the prompt? were they funny and original? keep this to 30 words or less
+                }
           `.replace(/[ \t]{2,}/g, '')},
         ]
     }
@@ -86,7 +103,6 @@ class GPTClass {
             console.log(response.data.usage)
             if(!response.data.choices[0].message) throw new Error('something went wrong generating the response from gpt')
             const message: ChatCompletionResponseMessage = response.data.choices[0].message
-            debugger
             message.content = message.content.replace('Support: ', '')
             message.content = message.content.replace('"', '')
             return message

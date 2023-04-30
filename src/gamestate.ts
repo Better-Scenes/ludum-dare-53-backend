@@ -1,4 +1,5 @@
 import { ChatCompletionRequestMessage } from "openai";
+import { CriticResponse } from "./websocket";
 
 export type GameCriticism = {
     scores: {
@@ -38,10 +39,23 @@ class GameStateClass {
         this.games.set(uuid, state);
     }
 
-    public getHistory(uuid: string) {
+    public getHistory(uuid: string): ChatCompletionRequestMessage[] {
         const state = this.games.get(uuid)
         if(!state) throw new Error('Game does not exist!')
         return state.messages;
+    }
+
+    public newFeedback(uuid: string, feedback: CriticResponse){
+        const state = this.games.get(uuid)
+        if(!state) throw new Error('Game does not exist!')
+        state.critic = feedback
+        this.games.set(uuid, state);
+    }
+
+    public getState(uuid: string): GameData {
+        const state = this.games.get(uuid)
+        if(!state) throw new Error('Game does not exist!')
+        return state;
     }
 }
 
