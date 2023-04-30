@@ -28,7 +28,6 @@ export class WebSocketServer {
             console.log(`Client connected`);
 
             socket.on('message', async (rawData) => {
-                console.log(`Received raw: ${rawData}`);
                 const data = JSON.parse(rawData.toString())
                 if (data.event === WebsocketEvents.CONNECT) {
                     uuid = uuidv4();

@@ -1,9 +1,9 @@
 import * as dotenv from 'dotenv';
+dotenv.config();
 import { ChatCompletionRequestMessage, Configuration, OpenAIApi } from "openai";
 import * as readline from 'readline';
 import { WebSocketServer } from './websocket';
 import GameState from './gamestate';
-dotenv.config();
 
 const websocketPort = 8080;
 const websocketServer = new WebSocketServer(websocketPort);
