@@ -64,23 +64,26 @@ class GPTClass {
             { role: "system", content: "You are a theater critic, you are watching an improv show" },
             {
                 role: "user", content: `
-                You are a theater critic, you have watched an improv show. You are reviewing an actor, you will be given the script for reference.
-                Your critiques are scathing, sarcastic, over-confident and harsh.
+                You are a theater critic, you have watched an improv show, You are reviewing an actor, you will be given the transcript of the show to review.
+                You are sarcastic, witty, and snarky.
+                Your critiques are known to be harsh but fair.
+                You love a good joke
 
                 Here is the prompt they were given:
                 ${prompt}
 
-                Here is the script from the show:
+                Here is the transcript from the show:
                 ${ messages.map(h => {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
 
+                You are judging the Actor, not the Support. Only critique the Actor's performance based on their lines. Ignore dialogue from Support.
                 Use the following format, You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
-                    "humor": {score}, // 1-10 The most obvious factor is how funny the actor's dialogue is, based on how much it makes people laugh or smile.
-                    "originality": {score}, // 1-10  How well does the actor's dialogue avoid cliches and tropes, how creative is the dialogue.
-                    "relevance": {score}, // 1-10  How well does the actor's dialogue fit with the scene and character description, how well did they interract with the support?
+                    "humor": {score}, // 1-10 How funny were the Actor's lines?.
+                    "originality": {score}, // 1-10  How well does the actor's dialogue avoid cliches and tropes, how creative is the Actor?
+                    "relevance": {score}, // 1-10  How well does the Actor's dialogue fit with the prompt?
                     "overall": {score}, // 1-10  How well did the actor do overall.
                     },
                     "feedback": "{critique}" // Give your thoughts on the show and the actor's performance, did they keep to the prompt? were they funny and original? keep this to 30 words or less
@@ -103,8 +106,6 @@ class GPTClass {
             console.log(response.data.usage)
             if(!response.data.choices[0].message) throw new Error('something went wrong generating the response from gpt')
             const message: ChatCompletionResponseMessage = response.data.choices[0].message
-            message.content = message.content.replace('Support: ', '')
-            message.content = message.content.replace('"', '')
             return message
         } catch (e) {
             console.error(e)

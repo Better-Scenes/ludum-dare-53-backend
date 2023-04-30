@@ -46,10 +46,15 @@ export class WebSocketServer {
     constructor(port: number) {
         this.server = new Server({ port });
 
-        this.server.on('connection', (socket) => {
+        this.server.on('connection',async (socket) => {
             let uuid: string = '';
             console.log(`Client connected`);
-            const criticResponse = GPT.chatCompletionRequest(GPT.generateCriticPrompt(testBadMessages, 'you are a cavewoman telling her boyfriend she is pregnant'));
+
+            // uncomment to test critic messages
+            // const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(testMessages, 'you are a cavewoman telling her boyfriend she is pregnant'));
+            // console.log("attempting to parse: ", criticResponse?.content)
+            // const responseData = JSON.parse(criticResponse?.content as string)
+            // console.log(responseData)
 
             socket.on('message', async (rawData) => {
                     const data = JSON.parse(rawData.toString())
@@ -67,16 +72,22 @@ export class WebSocketServer {
                 else if (data.event === WebsocketEvents.MESSAGE) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
                     const actorResponse = await GPT.chatCompletionRequest(GPT.generateActorPrompt(data.data, GameState.getHistory(uuid)));
-                    const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: actorResponse?.content || 'uhhhhh...'}
+                    let parsedActorResponse = actorResponse?.content.replace('Support: ', '')
+                    parsedActorResponse = actorResponse?.content.replace('"', '')
+                    const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: parsedActorResponse || 'uhhhhh...'}
                     GameState.newMessage(uuid, userMessage)
                     GameState.newMessage(uuid, responseMessage)
                     socket.send(JSON.stringify({ event: WebsocketEvents.MESSAGE, data: responseMessage }))
                 }
+            
                 else if (data.event === WebsocketEvents.FINISHED) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
                     const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                    console.log("attempting to parse: ", criticResponse?.content)
+                    const responseData = JSON.parse(criticResponse?.content as string)
+                    console.log(responseData)
                     GameState.newMessage(uuid, userMessage)
-                    socket.send(JSON.stringify({ event: WebsocketEvents.FINISHED, data: criticResponse }))
+                    socket.send(JSON.stringify({ event: WebsocketEvents.FINISHED, data: responseData }))
                 }
             });
 
