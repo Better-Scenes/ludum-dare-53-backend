@@ -2,7 +2,7 @@
 node_modules/
 
 # TypeScript build output
-dist/
+build/
 
 # Environment variables
 .env
