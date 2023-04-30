@@ -42,9 +42,11 @@ const testBadMessages: ChatCompletionRequestMessage[] = [
 
 export class WebSocketServer {
     private server: Server;
+    PING_INTERVAL = 30 * 1000; // 30 seconds in milliseconds
 
     constructor(port: number) {
         this.server = new Server({ port });
+        setInterval(() => this.sendPingsToClients(), this.PING_INTERVAL);
 
         this.server.on('connection',async (socket) => {
             let uuid: string = '';
@@ -97,8 +99,16 @@ export class WebSocketServer {
                 console.log('Client disconnected');
                 connections.delete(uuid);
             });
-        });
+        });         
 
         console.log(`WebSocket server started on port ${port}`);
     }
+    
+    sendPingsToClients = () => {
+        this.server.clients.forEach((client) => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.ping();
+          }
+        });
+      }
 }
