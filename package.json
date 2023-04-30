@@ -25,12 +25,12 @@
     "eslint-plugin-n": "^15.7.0",
     "eslint-plugin-promise": "^6.1.1",
     "nodemon": "^2.0.22",
-    "openai": "^3.2.1",
     "prettier": "^2.8.8",
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
   "dependencies": {
+    "openai": "^3.2.1",
     "dotenv": "^16.0.3",
     "uuid": "^9.0.0",
     "ws": "^8.13.0"
