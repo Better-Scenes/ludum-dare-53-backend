@@ -22,7 +22,7 @@ class GameStateClass {
     private games: Map<string, GameData> = new Map();
 
     private prompts =         [
-        "You are a strong caveowoman, and you are explaining to your boyfriend that you are pregnant",
+        "You are a strong cavewoman, and you are explaining to your boyfriend that you are pregnant",
         "You are a clumsy waiter, and you are apologizing to a customer for spilling their drink",
         "You are a nervous teenager, and you are trying to ask your crush to prom",
         "You are a paranoid librarian, and you are accusing a visitor of stealing a book",
