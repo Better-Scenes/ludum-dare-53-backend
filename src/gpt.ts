@@ -24,7 +24,7 @@ class GPTClass {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
 
-                How do you feel about the show so far?
+                How do you feel about the show so far? How is the Actor doing?
                 Use the following format. Your response must be valid json. You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
@@ -37,7 +37,7 @@ class GPTClass {
         ]
     }
     
-    generateActorPrompt = (messages: string, history: ChatCompletionRequestMessage[], prompt: string): ChatCompletionRequestMessage[] => {
+    generateActorPrompt = (messages: string, history: ChatCompletionRequestMessage[], prompt: string, role: string): ChatCompletionRequestMessage[] => {
         console.log({messages}, {history})
         return [
             { role: "system", content: "you are the supporting actor in a play, you are doing improv comedy" },
@@ -45,13 +45,17 @@ class GPTClass {
                 role: "user", content: `
                 An actor has just delivered a line of dialogue: ${messages}
                 Here is the prompt they were given: ${prompt}
-
+                You are the supporting actor, your role is: ${role}
+                ${history.length > 0 ? "Here is the entire transcript of the show, including past messages you sent (you are Support), you should use this for context only" : ""}
+                ${ history.length > 0 ? history.map(h => {
+                    return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
+                }).join('\n') : '' }
                 It is your turn to say a line of dialogue, use the prompt to determine which character you are. You will always be the SECOND character mentioned.
                 You are an improv comedian, you are extremely funny, witty, sometimes a bit silly and playful. You like slapstick comedy and act out your actions like this "*{verb or action}*"
 
                 You should consider the last line of dialogue from the Actor, and come up with a response that is funny, and makes sense with the prompt
-                Keep your response short, no more than 25 words. Write out your response in character, do not wrap the response in quotation marks, do not prefix your response with "Support:" or anything else
-                {your_response}
+                Keep your response short, no more than 25 words. Write out your response in character, 
+                You must respond with only your single line of dialogue, nothing else, do not wrap the response in quotation marks, do not prefix your response with anything
           `.replace(/[ \t]{2,}/g, '') },
         ]
     }

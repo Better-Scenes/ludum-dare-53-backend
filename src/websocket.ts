@@ -91,12 +91,11 @@ export class WebSocketServer {
                 }
                 else if (data.event === WebsocketEvents.MESSAGE) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
-                    const actorResponse = await GPT.chatCompletionRequest(GPT.generateActorPrompt(data.data, GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                    const actorResponse = await GPT.chatCompletionRequest(GPT.generateActorPrompt(data.data, GameState.getHistory(uuid), GameState.getState(uuid).prompt, GameState.getState(uuid).actorPrompt));
                     let parsedActorResponse = actorResponse?.content.replace('Support: ', '')
                     parsedActorResponse = actorResponse?.content.replace('"', '')
                     const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: parsedActorResponse || 'uhhhhh...'}
                     GameState.newMessage(uuid, userMessage)
-                    GameState.newMessage(uuid, responseMessage)
                     let crowdResponseMessage: CrowdResponse
                     try {
                         const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
@@ -108,6 +107,7 @@ export class WebSocketServer {
                             relevance: 5,
                         }}
                     }
+                    GameState.newMessage(uuid, responseMessage)
 
                     const response: WebsocketMessage = {event:  WebsocketEvents.MESSAGE, data: {actor: responseMessage, crowd: crowdResponseMessage} }
                     socket.send(JSON.stringify(response))
