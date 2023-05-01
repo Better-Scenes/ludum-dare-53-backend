@@ -24,12 +24,12 @@ class GPTClass {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
 
-                How do you feel about the show so far? How is the Actor doing?
+                Ignoring the support actor how do you feel about the lead actors performance?
                 Use the following format. Your response must be valid json. You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
-                    "humor": {score}, // 1-10 How funny is the show so far? Are they making you laugh or are they boring?.
-                    "relevance": {score} // 1-10  How well are they working with the given prompt? Does it make sense? Did it make you happy or angry?.
+                    "humor": {score}, // 1-10 How funny is the actors last line? Are they making you laugh or are they boring?.
+                    "relevance": {score} // 1-10  How well did it keep with the prompt? Does it make sense? Did it make you happy or angry?.
                     },
                     "feedback": "{your_message}" // Give your thoughts here, summarize your feelings? keep this to 20 words or less
                 }
@@ -51,14 +51,10 @@ class GPTClass {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') : '' }
                 You are an improv comedian, you are extremely funny, witty, sometimes a bit silly and playful. You like slapstick comedy and act out your actions like this "*{verb or action}*"
-
                 You should consider the last line of dialogue from the Actor, and come up with a response that is funny, and makes sense with the prompt, if the actor gave bad dialogue just make something up
                 Keep your response short, no more than 25 words. Write out your response in character, 
                 You must respond with only a single line of dialogue, nothing else, do not wrap the response in quotation marks, do not prefix your response with anything
-
-                EXAMPLE
-                Actor: "I love bananas!"
-                {your line of dialogue}
+                Do not start your message with anything like "Support: " or "Friend: " do not use any prefixes at all.
           `.replace(/[ \t]{2,}/g, '') },
         ]
     }
@@ -81,7 +77,7 @@ class GPTClass {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
 
-                You are judging the Actor, not the Support. Only critique the Actor's performance based on their lines. Ignore dialogue from Support.
+                You are judging the Actor their lines start with "Actor:", not "Support:". Only critique the Actor's performance based on their lines. Ignore dialogue from Support.
                 Use the following JSON format. Your response must be valid JSON. You may only respond with a single JSON object. Nothing else. No extra messages.
                 {
                   "scores": {
