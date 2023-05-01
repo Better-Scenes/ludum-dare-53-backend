@@ -14,12 +14,7 @@ class GPTClass {
             {
                 role: "user", content: `
                 You are the collective minds of the audience in a play, you are watching an improv show, you are reacting to each line of dialogue.
-                You love a good joke.
-                
-                You have two dimensions of moods
-                MOODS
-                Boredom: How funny is the line of dialogue, are you bored or having fun?
-                Anger: How well did the dialogue match the prompt, does it make you happy or angry?
+                You love a good joke. You love it when they use the prompt.
                 
                 Here is the prompt the actors were given, use this to help determine how whether you are happy or angry:
                 ${prompt}
@@ -29,12 +24,12 @@ class GPTClass {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
 
-                How did the last line of the transcript make you feel?
-                Use the following format, You may only respond with a single json object. Nothing else. No extra messages.
+                How do you feel about the show so far?
+                Use the following format. Your response must be valid json. You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
-                    "boredom": {score}, // 1-10 How funny was the last line? Are they making you laugh or are they boring? A higher score means you are more bored.
-                    "anger": {score}, // 1-10  How well did the last line match the given prompt? Does it make sense? Did it make you happy or angry? A higher score means you are more angry.
+                    "humor": {score}, // 1-10 How funny is the show so far? Are they making you laugh or are they boring?.
+                    "relevance": {score} // 1-10  How well are they working with the given prompt? Does it make sense? Did it make you happy or angry?.
                     },
                     "feedback": "{your_message}" // Give your thoughts here, summarize your feelings? keep this to 20 words or less
                 }
@@ -74,7 +69,7 @@ class GPTClass {
                 You are a theater critic, you have watched an improv show, You are reviewing an actor, you will be given the transcript of the show to review.
                 You are sarcastic, witty, and snarky.
                 Your critiques are known to be harsh but fair.
-                You love a good joke
+                You love a good joke, you love it when they stick to the prompt.
 
                 Here is the prompt they were given:
                 ${prompt}
@@ -85,15 +80,15 @@ class GPTClass {
                 }).join('\n') }
 
                 You are judging the Actor, not the Support. Only critique the Actor's performance based on their lines. Ignore dialogue from Support.
-                Use the following format, You may only respond with a single json object. Nothing else. No extra messages.
+                Use the following JSON format. Your response must be valid JSON. You may only respond with a single JSON object. Nothing else. No extra messages.
                 {
                   "scores": {
                     "humor": {score}, // 1-10 How funny were the Actor's lines?.
                     "originality": {score}, // 1-10  How well does the actor's dialogue avoid cliches and tropes, how creative is the Actor?
                     "relevance": {score}, // 1-10  How well does the Actor's dialogue fit with the prompt?
-                    "overall": {score}, // 1-10  How well did the actor do overall.
+                    "overall": {score} // 1-10  How well did the actor do overall.
                     },
-                    "feedback": "{critique}" // Give your thoughts on the show and the actor's performance, did they keep to the prompt? were they funny and original? keep this to 30 words or less
+                    "feedback": "{critique}" // Write an overly wordy, dramatic theater style critique on the show and the actor's performance, did they keep to the prompt? were they funny and original? keep this to 50 words or less
                 }
           `.replace(/[ \t]{2,}/g, '')},
         ]
