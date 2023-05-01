@@ -14,6 +14,20 @@ export type CriticResponse = {
     feedback: string
 }
 
+export type CrowdResponse = {
+    scores: {
+        humor: number,
+        relevance: number, 
+    }
+}
+
+export type ResponseData = {
+    prompt?: string
+    actor?: ChatCompletionRequestMessage,
+    crowd?: CrowdResponse,
+    critic?: CriticResponse,
+}
+
 export enum WebsocketEvents {
     CONNECT = 'CONNECT', // user is connecting or server is responding with uuid
     NEW_GAME = 'NEW_GAME', // when the user is starting a new game
@@ -23,7 +37,7 @@ export enum WebsocketEvents {
 export type WebsocketMessage = {
     event: WebsocketEvents,
     uuid?: string, //unique identifier from client
-    data?: any
+    data?: ResponseData
 }
 
 const connections: Map<string, WebSocket> = new Map();
@@ -71,7 +85,9 @@ export class WebSocketServer {
                     // generate a new scene prompt and send it
                     console.log("New game message: ", uuid)
                     const prompt = GameState.startNewGame(uuid)
-                    socket.send(JSON.stringify({ event: WebsocketEvents.NEW_GAME, data: prompt }))
+
+                    const response: WebsocketMessage = {event:  WebsocketEvents.NEW_GAME, data: {prompt} }
+                    socket.send(JSON.stringify(response))
                 }
                 else if (data.event === WebsocketEvents.MESSAGE) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
@@ -81,17 +97,28 @@ export class WebSocketServer {
                     const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: parsedActorResponse || 'uhhhhh...'}
                     GameState.newMessage(uuid, userMessage)
                     GameState.newMessage(uuid, responseMessage)
-                    socket.send(JSON.stringify({ event: WebsocketEvents.MESSAGE, data: responseMessage }))
+
+                    const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                    console.log("attempting JSON parse on: ", crowdResponse?.content)
+                    const crowdResponseMessage: CrowdResponse = JSON.parse(crowdResponse?.content as string)
+
+                    const response: WebsocketMessage = {event:  WebsocketEvents.MESSAGE, data: {actor: responseMessage, crowd: crowdResponseMessage} }
+                    socket.send(JSON.stringify(response))
                 }
             
                 else if (data.event === WebsocketEvents.FINISHED) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
-                    const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
-                    console.log("attempting to parse: ", criticResponse?.content)
-                    const responseData = JSON.parse(criticResponse?.content as string)
-                    console.log(responseData)
                     GameState.newMessage(uuid, userMessage)
-                    socket.send(JSON.stringify({ event: WebsocketEvents.FINISHED, data: responseData }))
+                    const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                    console.log("attempting JSON parse on: ", criticResponse?.content)
+                    const responseData: CriticResponse = JSON.parse(criticResponse?.content as string)
+
+                    const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                    console.log("attempting JSON parse on: ", crowdResponse?.content)
+                    const crowdResponseMessage: CrowdResponse = JSON.parse(crowdResponse?.content as string)
+
+                    const response: WebsocketMessage = {event:  WebsocketEvents.FINISHED, data: {critic: responseData, crowd: crowdResponseMessage} }
+                    socket.send(JSON.stringify(response))
                 }
             });
 

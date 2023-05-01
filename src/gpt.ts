@@ -8,29 +8,36 @@ const configuration = new Configuration({
 const openai = new OpenAIApi(configuration);
 
 class GPTClass {
-    generateTeacherPrompt = (messages: string, history: ChatCompletionRequestMessage[]): ChatCompletionRequestMessage[] => {
+    generateCrowdResponse = (messages: ChatCompletionRequestMessage[], prompt: string): ChatCompletionRequestMessage[] => {
         return [
-            { role: "system", content: "You are a theater critic, you are scathing sarcastic and witty, you are watching a play" },
+            { role: "system", content: "You are the audience in a play" },
             {
                 role: "user", content: `
-                You are a theater critic, you are scathing sarcastic and witty,  you are watching a play, the user is playing a character in that play, the setting is the character is a neolithic cavewoman and she is trying to tell her boyfriend that she is pregnant. You will judge the dialogue from the user and criticize it based on some properties. 
-    
-                Use the following format, You may only respond with a single json object. Nothing else. No extra messages.
+                You are the collective minds of the audience in a play, you are watching an improv show, you are reacting to each line of dialogue.
+                You love a good joke.
                 
-                FORMAT
+                You have two dimensions of moods
+                MOODS
+                Boredom: How funny is the line of dialogue, are you bored or having fun?
+                Anger: How well did the dialogue match the prompt, does it make you happy or angry?
+                
+                Here is the prompt the actors were given, use this to help determine how whether you are happy or angry:
+                ${prompt}
+
+                Here is the transcript from the show so far:
+                ${ messages.map(h => {
+                    return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
+                }).join('\n') }
+
+                How did the last line of the transcript make you feel?
+                Use the following format, You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
-                    "humor": 8, // 1-10 The most obvious factor is how funny the dialogue is, based on how much it makes people laugh or smile.
-                    "originality": 7, // 1-10  How well does the dialogue avoid cliches and tropes, how creative is the dialogue.
-                    "relevance": 6, // 1-10  How well does the dialogue fit with the scene and character description.
-                    "overall": 7 // 1-10  How well did the user do overall.
+                    "boredom": {score}, // 1-10 How funny was the last line? Are they making you laugh or are they boring? A higher score means you are more bored.
+                    "anger": {score}, // 1-10  How well did the last line match the given prompt? Does it make sense? Did it make you happy or angry? A higher score means you are more angry.
                     },
-                    "feedback": "Your feedback about the joke" // give a short piece of feedback for the comedian about their joke, keep this to 300 characters
+                    "feedback": "{your_message}" // Give your thoughts here, summarize your feelings? keep this to 20 words or less
                 }
-                ${history.map(h => {
-                    return `${h.role}: ${h.content}`
-                }).join('\n')}
-                User: ${messages}
           `.replace(/[ \t]{2,}/g, '')},
         ]
     }
