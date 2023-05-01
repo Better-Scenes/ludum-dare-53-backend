@@ -24,7 +24,7 @@ class GPTClass {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
 
-                Ignoring the support actor how do you feel about the lead actors performance?
+                You are judging the Actor their lines start with "Actor:", not "Support:". Only critique the Actor's performance based on their lines. Ignore dialogue from Support.
                 Use the following format. Your response must be valid json. You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
