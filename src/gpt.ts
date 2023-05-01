@@ -28,8 +28,8 @@ class GPTClass {
                 Use the following format. Your response must be valid json. You may only respond with a single json object. Nothing else. No extra messages.
                 {
                   "scores": {
-                    "humor": {score}, // 1-10 How funny is the actors last line? Are they making you laugh or are they boring?.
-                    "relevance": {score} // 1-10  How well did it keep with the prompt? Does it make sense? Did it make you happy or angry?.
+                    "humor": {score}, // 1-10 How funny is the actors last line? Is it a good joke?
+                    "relevance": {score} // 1-10  Are they following the prompt and keeping in character? Does their dialogue make sense?
                     },
                     "feedback": "{your_message}" // Give your thoughts here, summarize your feelings? keep this to 20 words or less
                 }
