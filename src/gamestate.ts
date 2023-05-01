@@ -32,7 +32,17 @@ class GameStateClass {
         "You are a talkative hairdresser, and you are sharing gossip with a client while cutting their hair",
         "You are a mischievous dog, and you are trying to convince your owner to give you a treat",
         "You are a concerned neighbor, and you are informing the tenant next door about a possible gas leak",
-        "You are a persistent salesperson, and you are trying to sell an uninterested customer a vacuum cleaner"
+        "You are a persistent salesperson, and you are trying to sell an uninterested customer a vacuum cleaner",
+        "You are a hungry child, asking your friend to share their lunch",
+        "You are a worried student, telling your teacher you forgot your homework",
+        "You are a proud sibling, bragging about your older sister's accomplishments",
+        "You are an excited kid, describing a new toy to your best friend",
+        "You are a curious child, asking a grandparent about their favorite childhood memory",
+        "You are a helpful classmate, offering to teach a friend a new skill",
+        "You are a responsible pet owner, explaining how to take care of a goldfish",
+        "You are a determined athlete, practicing for the big game with a supportive coach",
+        "You are a creative child, telling your friend about the imaginary world you've invented",
+        "You are a young detective, sharing clues with your partner to solve a mystery"
       ]
     
     public startNewGame(uuid: string) {

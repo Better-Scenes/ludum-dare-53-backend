@@ -13,13 +13,13 @@ class GPTClass {
             { role: "system", content: "You are the audience in a play" },
             {
                 role: "user", content: `
-                You are the collective minds of the audience in a play, you are watching an improv show, you are reacting to each line of dialogue.
+                You are the collective minds of the audience in a play, you are watching an improv show where the actors are given a prompt, you are reacting to each line of dialogue.
                 You love a good joke. You love it when they use the prompt.
                 
-                Here is the prompt the actors were given, use this to help determine how whether you are happy or angry:
+                Here is the prompt the actors were given, use this for context:
                 ${prompt}
 
-                Here is the transcript from the show so far:
+                Here is the transcript from the show so far, they are improvising based on the prompt:
                 ${ messages.map(h => {
                     return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
                 }).join('\n') }
@@ -37,26 +37,21 @@ class GPTClass {
         ]
     }
     
-    generateActorPrompt = (messages: string, history: ChatCompletionRequestMessage[]): ChatCompletionRequestMessage[] => {
+    generateActorPrompt = (messages: string, history: ChatCompletionRequestMessage[], prompt: string): ChatCompletionRequestMessage[] => {
         console.log({messages}, {history})
         return [
-            { role: "system", content: "you are in a play, you are playing a character" },
+            { role: "system", content: "you are the supporting actor in a play, you are doing improv comedy" },
             {
                 role: "user", content: `
-                You are doing improv comedy on a stage, you are working with another actor and supporting them. You play "the other character" in the setting and your job is to respond to the actor while in character
-                You are a comedian, you are extremely funny, witty, sometimes a bit silly and playful, you are very good at supporting other actors. You like slapstick comedy and act out your actions like this "*{verb or action}*"
-                The setting is provided to the main actor, this is what was given to them: "you are a neolithic cavewoman and she is trying to tell her boyfriend that she is pregnant"
+                An actor has just delivered a line of dialogue: ${messages}
+                Here is the prompt they were given: ${prompt}
 
-                Create a response that matches the setting, responds to the user in some way, and tries to set them up for an easy joke
-                Keep the answer short, punchy and to the point, no more than 25 words
-                Now write out your response in character, do not wrap the message in quotation marks, do not prefix your response with "Support:" or anything else
+                It is your turn to say a line of dialogue, use the prompt to determine which character you are. You will always be the SECOND character mentioned.
+                You are an improv comedian, you are extremely funny, witty, sometimes a bit silly and playful. You like slapstick comedy and act out your actions like this "*{verb or action}*"
 
-                Here is the script so far:
-                ${history.length > 0 ? history.map(h => {
-                    return `${h.role == 'user' ? 'Actor' : 'Support'}: ${h.content}`
-                }).join('\n') : '' }
-                Actor: ${messages}
-                Support: {your_response}
+                You should consider the last line of dialogue from the Actor, and come up with a response that is funny, and makes sense with the prompt
+                Keep your response short, no more than 25 words. Write out your response in character, do not wrap the response in quotation marks, do not prefix your response with "Support:" or anything else
+                {your_response}
           `.replace(/[ \t]{2,}/g, '') },
         ]
     }
@@ -88,7 +83,7 @@ class GPTClass {
                     "relevance": {score}, // 1-10  How well does the Actor's dialogue fit with the prompt?
                     "overall": {score} // 1-10  How well did the actor do overall.
                     },
-                    "feedback": "{critique}" // Write an overly wordy, dramatic theater style critique on the show and the actor's performance, did they keep to the prompt? were they funny and original? keep this to 50 words or less
+                    "feedback": "{critique}" // Write an overly wordy, dramatic theater style critique that will appear in the newspaper on the show and the actor's performance, did they keep to the prompt? were they funny and original? keep this to 75 words or less
                 }
           `.replace(/[ \t]{2,}/g, '')},
         ]

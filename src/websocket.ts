@@ -91,7 +91,7 @@ export class WebSocketServer {
                 }
                 else if (data.event === WebsocketEvents.MESSAGE) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
-                    const actorResponse = await GPT.chatCompletionRequest(GPT.generateActorPrompt(data.data, GameState.getHistory(uuid)));
+                    const actorResponse = await GPT.chatCompletionRequest(GPT.generateActorPrompt(data.data, GameState.getHistory(uuid), GameState.getState(uuid).prompt));
                     let parsedActorResponse = actorResponse?.content.replace('Support: ', '')
                     parsedActorResponse = actorResponse?.content.replace('"', '')
                     const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: parsedActorResponse || 'uhhhhh...'}
