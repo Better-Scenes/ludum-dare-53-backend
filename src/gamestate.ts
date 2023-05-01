@@ -30,7 +30,6 @@ class GameStateClass {
         "You are a forgetful chef, and you are trying to remember the ingredients of a dish while a sous-chef listens",
         "You are a lost tourist, and you are asking a local for directions to a famous landmark",
         "You are a talkative hairdresser, and you are sharing gossip with a client while cutting their hair",
-        "You are a mischievous dog, and you are trying to convince your owner to give you a treat",
         "You are a concerned neighbor, and you are informing the tenant next door about a possible gas leak",
         "You are a persistent salesperson, and you are trying to sell an uninterested customer a vacuum cleaner",
         "You are a hungry child, asking your friend to share their lunch",

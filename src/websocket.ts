@@ -97,10 +97,17 @@ export class WebSocketServer {
                     const responseMessage: ChatCompletionRequestMessage = {role: ChatCompletionResponseMessageRoleEnum.Assistant, content: parsedActorResponse || 'uhhhhh...'}
                     GameState.newMessage(uuid, userMessage)
                     GameState.newMessage(uuid, responseMessage)
-
-                    const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
-                    console.log("attempting JSON parse on: ", crowdResponse?.content)
-                    const crowdResponseMessage: CrowdResponse = JSON.parse(crowdResponse?.content as string)
+                    let crowdResponseMessage: CrowdResponse
+                    try {
+                        const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                        console.log("attempting JSON parse on: ", crowdResponse?.content)
+                        crowdResponseMessage = JSON.parse(crowdResponse?.content as string)
+                    }catch(e) {
+                        crowdResponseMessage = {scores: {
+                            humor: 5,
+                            relevance: 5,
+                        }}
+                    }
 
                     const response: WebsocketMessage = {event:  WebsocketEvents.MESSAGE, data: {actor: responseMessage, crowd: crowdResponseMessage} }
                     socket.send(JSON.stringify(response))
@@ -109,13 +116,35 @@ export class WebSocketServer {
                 else if (data.event === WebsocketEvents.FINISHED) {
                     const userMessage = {role: ChatCompletionRequestMessageRoleEnum.User, content: data.data}
                     GameState.newMessage(uuid, userMessage)
-                    const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
-                    console.log("attempting JSON parse on: ", criticResponse?.content)
-                    const responseData: CriticResponse = JSON.parse(criticResponse?.content as string)
 
-                    const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
-                    console.log("attempting JSON parse on: ", crowdResponse?.content)
-                    const crowdResponseMessage: CrowdResponse = JSON.parse(crowdResponse?.content as string)
+                    let responseData: CriticResponse;
+                    try{
+                        const criticResponse = await GPT.chatCompletionRequest(GPT.generateCriticPrompt(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                        console.log("attempting JSON parse on: ", criticResponse?.content)
+                        responseData = JSON.parse(criticResponse?.content as string)
+                    }catch(e){
+                        responseData = {
+                            scores: {
+                                humor: 5,
+                                originality: 5,
+                                relevance: 5,
+                                overall: 5,
+                                },
+                            feedback: "I'm sure it was a perfectly adequate performance, but I couldn't be bothered to go. (something went wrong with the server, sorry!)"}
+                    }
+
+
+                    let crowdResponseMessage: CrowdResponse
+                    try {
+                        const crowdResponse = await GPT.chatCompletionRequest(GPT.generateCrowdResponse(GameState.getHistory(uuid), GameState.getState(uuid).prompt));
+                        console.log("attempting JSON parse on: ", crowdResponse?.content)
+                        crowdResponseMessage = JSON.parse(crowdResponse?.content as string)
+                    }catch(e) {
+                        crowdResponseMessage = {scores: {
+                            humor: 5,
+                            relevance: 5,
+                        }}
+                    }
 
                     const response: WebsocketMessage = {event:  WebsocketEvents.FINISHED, data: {critic: responseData, crowd: crowdResponseMessage} }
                     socket.send(JSON.stringify(response))
